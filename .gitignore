@@ -7,4 +7,6 @@
 /public/bundles/
 /var/
 /vendor/
+/docker/db/data/
+/.env
 ###< symfony/framework-bundle ###
