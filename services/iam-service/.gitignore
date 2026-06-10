@@ -9,6 +9,5 @@
 /vendor/
 /docker/db/data/
 /.env
-/infrastructure/postgres/data
 
 ###< symfony/framework-bundle ###
