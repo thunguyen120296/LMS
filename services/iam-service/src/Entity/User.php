@@ -3,14 +3,15 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '`user`', schema: 'iam')]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+#[ORM\Table(name: 'user', schema: 'iam')]
+#[ORM\UniqueConstraint(name: 'uniq_user_email', fields: ['email'])]
+class User
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -20,90 +21,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     private ?string $email = null;
 
-    /**
-     * @var list<string> The user roles
-     */
-    #[ORM\Column]
-    private array $roles = [];
-
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
+    #[ORM\Column(length: 255)]
     private ?string $password = null;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $username = null;
 
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $firstName = null;
 
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $lastName = null;
 
-        return $this;
-    }
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $avatarUrl = null;
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
-    }
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $locale = null;
 
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $ssoProvider = null;
 
-        return array_unique($roles);
-    }
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $ssoSubject = null;
 
-    /**
-     * @param list<string> $roles
-     */
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
+    #[ORM\Column]
+    private bool $isActive = true;
 
-        return $this;
-    }
+    #[ORM\Column]
+    private bool $emailVerified = false;
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $lastLoginAt = null;
 
-    public function setPassword(string $password): static
-    {
-        $this->password = $password;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private ?\DateTimeImmutable $createdAt = null;
 
-        return $this;
-    }
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;
 
-    /**
-     * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
-     */
-    public function __serialize(): array
-    {
-        $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
-
-        return $data;
-    }
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $deletedAt = null;
 }
