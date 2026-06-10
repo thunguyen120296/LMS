@@ -1,29 +1,44 @@
 <?php
 
-namespace App\Entity;
+declare(strict_types=1);
 
-use App\Repository\UserRoleRepository;
+namespace App\IAM\Entity;
+
+use App\IAM\Repository\UserRoleRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRoleRepository::class)]
-#[ORM\Table(name: 'user_role', schema: 'iam')]
-#[ORM\UniqueConstraint(name: 'uniq_user_role', columns: ['user_id', 'role_id'])]
+#[ORM\Table(name: 'user_roles', schema: 'iam')]
+#[ORM\UniqueConstraint(name: 'uq_iam_user_role', columns: ['user_id', 'role_id'])]
 class UserRole
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    private string $id;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userRoles')]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private ?User $user = null;
+    private User $user;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(name: 'role_id', referencedColumnName: 'id', nullable: false)]
-    private ?Role $role = null;
+    #[ORM\ManyToOne(targetEntity: Role::class, inversedBy: 'userRoles')]
+    #[ORM\JoinColumn(name: 'role_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    private Role $role;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private ?\DateTimeImmutable $assignedAt = null;
+    private \DateTimeImmutable $assignedAt;
+
+    public function __construct(User $user, Role $role)
+    {
+        $this->user       = $user;
+        $this->role       = $role;
+        $this->assignedAt = new \DateTimeImmutable();
+    }
+
+    public function getId(): string { return $this->id; }
+    public function getUser(): User { return $this->user; }
+    public function getRole(): Role { return $this->role; }
+    public function getAssignedAt(): \DateTimeImmutable { return $this->assignedAt; }
 }

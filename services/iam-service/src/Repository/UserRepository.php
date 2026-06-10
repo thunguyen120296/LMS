@@ -1,60 +1,111 @@
 <?php
 
-namespace App\Repository;
+declare(strict_types=1);
 
-use App\Entity\User;
+namespace App\IAM\Repository;
+
+use App\IAM\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
 /**
  * @extends ServiceEntityRepository<User>
  */
-class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
+class UserRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, User::class);
     }
 
-    /**
-     * Used to upgrade (rehash) the user's password automatically over time.
-     */
-    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    public function findActiveById(string $id): ?User
     {
-        if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
-        }
-
-        $user->setPassword($newHashedPassword);
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
+        return $this->createQueryBuilder('u')
+            ->where('u.id = :id')
+            ->andWhere('u.deletedAt IS NULL')
+            ->andWhere('u.isActive = true')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findByEmail(string $email): ?User
+    {
+        return $this->findOneBy(['email' => $email, 'deletedAt' => null]);
+    }
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findBySso(string $provider, string $subject): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.ssoProvider = :provider')
+            ->andWhere('u.ssoSubject = :subject')
+            ->andWhere('u.deletedAt IS NULL')
+            ->setParameter('provider', $provider)
+            ->setParameter('subject', $subject)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findWithRoles(string $id): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.userRoles', 'ur')
+            ->leftJoin('ur.role', 'r')
+            ->addSelect('ur', 'r')
+            ->where('u.id = :id')
+            ->andWhere('u.deletedAt IS NULL')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @return User[]
+     */
+    public function findPaginated(int $page, int $limit, ?string $search = null): array
+    {
+        $qb = $this->createActiveQueryBuilder();
+
+        if ($search) {
+            $qb->andWhere('u.email LIKE :search OR u.username LIKE :search OR u.firstName LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        return $qb->orderBy('u.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countActive(): int
+    {
+        return (int) $this->createActiveQueryBuilder()
+            ->select('COUNT(u.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createActiveQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.deletedAt IS NULL');
+    }
+
+    public function save(User $user, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($user);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(User $user, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($user);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
 }

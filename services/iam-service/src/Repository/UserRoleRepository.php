@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Repository;
-
-use App\Entity\UserRole;
+namespace App\IAM\Repository;
+ 
+use App\IAM\Entity\UserRole;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-
+ 
 /**
  * @extends ServiceEntityRepository<UserRole>
  */
@@ -15,29 +15,31 @@ class UserRoleRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, UserRole::class);
     }
-
-//    /**
-//     * @return UserRole[] Returns an array of UserRole objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?UserRole
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+ 
+    public function hasRole(string $userId, string $roleName): bool
+    {
+        $count = $this->createQueryBuilder('ur')
+            ->select('COUNT(ur.id)')
+            ->join('ur.role', 'r')
+            ->where('ur.user = :userId')
+            ->andWhere('r.name = :roleName')
+            ->setParameter('userId', $userId)
+            ->setParameter('roleName', $roleName)
+            ->getQuery()
+            ->getSingleScalarResult();
+ 
+        return (int) $count > 0;
+    }
+ 
+    public function save(UserRole $userRole, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($userRole);
+        if ($flush) $this->getEntityManager()->flush();
+    }
+ 
+    public function remove(UserRole $userRole, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($userRole);
+        if ($flush) $this->getEntityManager()->flush();
+    }
 }

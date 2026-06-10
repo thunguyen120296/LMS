@@ -1,11 +1,10 @@
 <?php
-
-namespace App\Repository;
-
-use App\Entity\RolePermission;
+namespace App\IAM\Repository;
+ 
+use App\IAM\Entity\RolePermission;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-
+ 
 /**
  * @extends ServiceEntityRepository<RolePermission>
  */
@@ -15,29 +14,16 @@ class RolePermissionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, RolePermission::class);
     }
-
-//    /**
-//     * @return RolePermission[] Returns an array of RolePermission objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?RolePermission
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+ 
+    public function save(RolePermission $rp, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($rp);
+        if ($flush) $this->getEntityManager()->flush();
+    }
+ 
+    public function remove(RolePermission $rp, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($rp);
+        if ($flush) $this->getEntityManager()->flush();
+    }
 }

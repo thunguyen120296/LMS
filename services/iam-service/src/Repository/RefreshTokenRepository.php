@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Repository;
+declare(strict_types=1);
 
-use App\Entity\RefreshToken;
+namespace App\IAM\Repository;
+
+use App\IAM\Entity\RefreshToken;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +18,40 @@ class RefreshTokenRepository extends ServiceEntityRepository
         parent::__construct($registry, RefreshToken::class);
     }
 
-//    /**
-//     * @return RefreshToken[] Returns an array of RefreshToken objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findValidByHash(string $tokenHash): ?RefreshToken
+    {
+        return $this->createQueryBuilder('rt')
+            ->where('rt.tokenHash = :hash')
+            ->andWhere('rt.revoked = false')
+            ->andWhere('rt.expiresAt > :now')
+            ->setParameter('hash', $tokenHash)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 
-//    public function findOneBySomeField($value): ?RefreshToken
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function revokeAllForUser(string $userId): int
+    {
+        return $this->getEntityManager()->createQuery(
+            'UPDATE App\IAM\Entity\RefreshToken rt SET rt.revoked = true
+             WHERE rt.user = :userId AND rt.revoked = false'
+        )
+        ->setParameter('userId', $userId)
+        ->execute();
+    }
+
+    public function deleteExpired(): int
+    {
+        return $this->getEntityManager()->createQuery(
+            'DELETE FROM App\IAM\Entity\RefreshToken rt WHERE rt.expiresAt < :now'
+        )
+        ->setParameter('now', new \DateTimeImmutable())
+        ->execute();
+    }
+
+    public function save(RefreshToken $token, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($token);
+        if ($flush) $this->getEntityManager()->flush();
+    }
 }

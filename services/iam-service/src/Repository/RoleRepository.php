@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Repository;
+declare(strict_types=1);
 
-use App\Entity\Role;
+namespace App\IAM\Repository;
+
+use App\IAM\Entity\Role;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +18,32 @@ class RoleRepository extends ServiceEntityRepository
         parent::__construct($registry, Role::class);
     }
 
-//    /**
-//     * @return Role[] Returns an array of Role objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('r.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findByName(string $name): ?Role
+    {
+        return $this->findOneBy(['name' => $name]);
+    }
 
-//    public function findOneBySomeField($value): ?Role
-//    {
-//        return $this->createQueryBuilder('r')
-//            ->andWhere('r.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /** @return Role[] */
+    public function findAllWithPermissions(): array
+    {
+        return $this->createQueryBuilder('r')
+            ->leftJoin('r.rolePermissions', 'rp')
+            ->leftJoin('rp.permission', 'p')
+            ->addSelect('rp', 'p')
+            ->orderBy('r.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function save(Role $role, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($role);
+        if ($flush) $this->getEntityManager()->flush();
+    }
+
+    public function remove(Role $role, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($role);
+        if ($flush) $this->getEntityManager()->flush();
+    }
 }

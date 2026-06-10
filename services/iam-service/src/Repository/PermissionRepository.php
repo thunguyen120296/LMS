@@ -1,11 +1,13 @@
 <?php
-
-namespace App\Repository;
-
-use App\Entity\Permission;
+ 
+declare(strict_types=1);
+ 
+namespace App\IAM\Repository;
+ 
+use App\IAM\Entity\Permission;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-
+ 
 /**
  * @extends ServiceEntityRepository<Permission>
  */
@@ -15,29 +17,21 @@ class PermissionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Permission::class);
     }
-
-//    /**
-//     * @return Permission[] Returns an array of Permission objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('p.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Permission
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+ 
+    public function findByResourceAction(string $resource, string $action): ?Permission
+    {
+        return $this->findOneBy(['resource' => $resource, 'action' => $action]);
+    }
+ 
+    /** @return Permission[] */
+    public function findByResource(string $resource): array
+    {
+        return $this->findBy(['resource' => $resource]);
+    }
+ 
+    public function save(Permission $permission, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($permission);
+        if ($flush) $this->getEntityManager()->flush();
+    }
 }
