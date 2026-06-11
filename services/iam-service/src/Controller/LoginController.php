@@ -25,10 +25,9 @@ final class LoginController extends AbstractController
                 'client_secret' => $this->getParameter('client_secret'),
                 'username'      => $data['username'],
                 'password'      => $data['password'],
-                'scope'         => $this->getParameter('scope')
+                // 'scope'         => $this->getParameter('scope')
             ]),
         ]);
-
         if($response->getStatusCode() !== 200){
             return new JsonResponse([
                 'message' => 'Invalid credentials'
