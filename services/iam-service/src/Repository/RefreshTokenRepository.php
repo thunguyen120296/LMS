@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\IAM\Repository;
+namespace App\Repository;
 
-use App\IAM\Entity\RefreshToken;
+use App\Entity\RefreshToken;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

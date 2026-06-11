@@ -1,7 +1,7 @@
 <?php
-namespace App\IAM\Repository;
+namespace App\Repository;
  
-use App\IAM\Entity\RolePermission;
+use App\Entity\RolePermission;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
  
