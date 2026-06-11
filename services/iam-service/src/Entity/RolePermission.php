@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\IAM\Entity;
+namespace App\Entity;
 
-use App\IAM\Repository\RolePermissionRepository;
+use App\Repository\RolePermissionRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RolePermissionRepository::class)]

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\IAM\Entity;
+namespace App\Entity;
 
-use App\IAM\Repository\RefreshTokenRepository;
+use App\Repository\RefreshTokenRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

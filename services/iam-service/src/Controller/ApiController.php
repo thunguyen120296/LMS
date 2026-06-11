@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[Route('/api/iam/api/v1')]
 final class ApiController extends AbstractController
 {
     #[Route('/api', name: 'app_api')]
@@ -18,7 +19,7 @@ final class ApiController extends AbstractController
         ]);
     }
 
-    #[Route('/api/test', name: 'api_test')]
+    #[Route('/test', name: 'api_test')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function test(): JsonResponse
     {

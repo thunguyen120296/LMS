@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\IAM\Repository;
+namespace App\Repository;
 
-use App\IAM\Entity\User;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
