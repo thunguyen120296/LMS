@@ -7,3 +7,7 @@ lexik_jwt_authentication:
     # Quan trọng: Cấu hình để lấy claim nào làm User Identifier (ví dụ 'sub' hoặc 'email')
     user_id_claim: email 
     clock_skew: 0
+    token_extractors:
+        cookie:
+            enabled: true
+            name: auth_token

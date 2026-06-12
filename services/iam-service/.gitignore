@@ -9,6 +9,7 @@
 /vendor/
 /docker/db/data/
 /.env
+/cursor
 
 ###< symfony/framework-bundle ###
 ###> lexik/jwt-authentication-bundle ###

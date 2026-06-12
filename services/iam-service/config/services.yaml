@@ -8,6 +8,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     keycloak_url: '%env(KEYCLOAK_URL)%'
+    keycloak_admin: '%env(KEYCLOAK_ADMIN)%'
+    keycloak_admin_password: '%env(KEYCLOAK_ADMIN_PASSWORD)%'
     client_id: '%env(CLIENT_ID)%'
     client_secret: '%env(CLIENT_SECRET)%'
     grant_type: '%env(GRAND_TYPE)%'
@@ -23,6 +25,20 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+
+    Lms\Shared\EventSubscriber\ApiExceptionSubscriber:
+        arguments:
+            $debug: '%kernel.debug%'
+
+    Lms\Shared\Logger\BaseLogService:
+        arguments:
+            $service: 'iam-service'
+
+    App\Service\RegisterService:
+        arguments:
+            $keycloakUrl: '%keycloak_url%'
+            $keycloakAdmin: '%keycloak_admin%'
+            $keycloakAdminPassword: '%keycloak_admin_password%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
