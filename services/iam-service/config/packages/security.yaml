@@ -19,7 +19,12 @@ security:
         # main:
         #     lazy: true
         #     provider: app_user_provider
-        
+
+        api_public:
+            pattern: ^/api/iam/(login|register)$
+            stateless: true
+            security: false
+
         api:
             pattern: ^/api
             stateless: true
@@ -36,8 +41,9 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
-        - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api/v1, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/iam/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/iam/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/iam/api/v1, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:

@@ -9,7 +9,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -18,7 +17,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Index(columns: ['sso_provider', 'sso_subject'], name: 'idx_iam_users_sso')]
 #[ORM\Index(columns: ['deleted_at'], name: 'idx_iam_users_deleted_at')]
 #[ORM\HasLifecycleCallbacks]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
@@ -31,9 +30,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::STRING, length: 50, unique: true)]
     private string $username;
-
-    #[ORM\Column(type: Types::STRING, nullable: true)]
-    private ?string $passwordHash = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true)]
     private ?string $firstName = null;
@@ -115,16 +111,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return array_unique($roles);
     }
 
-    public function getPassword(): ?string
-    {
-        return $this->passwordHash;
-    }
-
-    public function eraseCredentials(): void
-    {
-        // noop — passwordHash is already hashed
-    }
-
     public function softDelete(): void
     {
         $this->deletedAt = new \DateTimeImmutable();
@@ -151,9 +137,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUsername(): string { return $this->username; }
     public function setUsername(string $username): static { $this->username = $username; return $this; }
-
-    public function getPasswordHash(): ?string { return $this->passwordHash; }
-    public function setPasswordHash(?string $hash): static { $this->passwordHash = $hash; return $this; }
 
     public function getFirstName(): ?string { return $this->firstName; }
     public function setFirstName(?string $firstName): static { $this->firstName = $firstName; return $this; }

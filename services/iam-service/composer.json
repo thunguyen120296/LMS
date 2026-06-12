@@ -19,7 +19,8 @@
         "symfony/runtime": "8.1.*",
         "symfony/security-bundle": "8.1.*",
         "symfony/uid": "8.1.*",
-        "symfony/yaml": "8.1.*"
+        "symfony/yaml": "8.1.*",
+        "thunla/lms-shared-library": "dev-main"
     },
     "config": {
         "allow-plugins": {
@@ -76,5 +77,11 @@
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "symfony/maker-bundle": "^1.67"
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/thunguyen120296/LMS-Shared-Library.git"
+        }
+    ]
 }

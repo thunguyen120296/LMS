@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -11,7 +12,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 #[Route('/api/iam')]
 final class LoginController extends AbstractController
 {
-    #[Route('/api/login', name: 'app_login')]
+    #[Route('/login', name: 'app_login', methods: ['POST'])]
     public function login(Request $request, HttpClientInterface $client): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -33,7 +34,18 @@ final class LoginController extends AbstractController
                 'message' => 'Invalid credentials'
             ], 401);
         }
+
         $tokenData = $response->toArray();
-        return new JsonResponse(['token' => $tokenData['access_token']]);
+        $response = new JsonResponse(['message' => 'Logged in successfully']);
+        // Gắn cookie
+        $cookie = Cookie::create('auth_token')
+                    ->withValue($tokenData['access_token'])
+                    ->withHttpOnly(true)
+                    ->withSecure(false) // Sẽ đổi thành true khi lên production
+                    ->withSameSite('strict')
+                    ->withExpires(new \DateTime('+1 hour'));
+        $response->headers->setCookie($cookie);
+
+        return $response;
     }
 }
