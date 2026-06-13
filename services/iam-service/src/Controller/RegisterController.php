@@ -54,9 +54,15 @@ final class RegisterController extends BaseController
         $user = $registerService->createUser($payload);
         $end = microtime(true);
         error_log('Time taken: ' . ($end - $start) . ' seconds');
-        return $this->success([
-            'userId' => $user->getId(),
-            'email' => $user->getEmail(),
-        ], 201);
+
+        return $this->success(
+            [
+                'userId' => $user->getId(),
+                'email' => $user->getEmail(),
+            ],
+            'Đăng ký thành công',
+            null,
+            201,
+        );
     }
 }

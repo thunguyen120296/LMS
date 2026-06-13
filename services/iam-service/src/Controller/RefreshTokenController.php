@@ -1,69 +1,51 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Controller;
 
-use Lms\Shared\Controller\BaseController;
-use Lms\Shared\Exception\ApiException;
-use Symfony\Component\HttpFoundation\Cookie;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[Route('/api/iam')]
-final class LoginController extends BaseController
+final class RefreshTokenController extends AbstractController
 {
-    #[Route('/login', name: 'app_login', methods: ['POST'])]
-    public function login(Request $request, HttpClientInterface $client): JsonResponse
+    #[Route('/refresh/token', name: 'app_refresh_token', methods: ['POST'])]
+    public function refreshToken(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        if (!is_array($data)) {
-            throw new ApiException('Dữ liệu không hợp lệ', 400);
-        }
-
-        if (empty($data['username']) || empty($data['password'])) {
-            throw new ApiException('Dữ liệu không hợp lệ', 400);
+        $refreshToken = $request->cookies->get('refresh_token');
+        if (!$refreshToken) {
+            throw new ApiException('Refresh token không tồn tại', 401);
         }
 
         $url = $this->getParameter('keycloak_url') . '/realms/master/protocol/openid-connect/token';
         $response = $client->request('POST', $url, [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'body' => http_build_query([
-                'grant_type'    => $this->getParameter('grant_type'),
-                'client_id'     => $this->getParameter('client_id'),
+                'grant_type' => 'refresh_token',
+                'client_id' => $this->getParameter('client_id'),
                 'client_secret' => $this->getParameter('client_secret'),
-                'username'      => $data['username'],
-                'password'      => $data['password'],
+                'refresh_token' => $refreshToken,
             ]),
         ]);
-
         if ($response->getStatusCode() !== 200) {
-            throw new ApiException('Đăng nhập thất bại', 401);
+            throw new ApiException('Refresh token không hợp lệ', 401);
         }
 
         $tokenData = $response->toArray();
-
-        $jsonResponse = $this->success(null, 'Đăng nhập thành công');
-
+        $jsonResponse = $this->success(null, 'Refresh token thành công');
         $cookie = Cookie::create('auth_token')
             ->withValue($tokenData['access_token'])
             ->withHttpOnly(true)
             ->withSecure(false)
             ->withSameSite('strict')
             ->withExpires($tokenData['expires_in']);
-
         $cookieRefreshToken = Cookie::create('refresh_token')
             ->withValue($tokenData['refresh_token'])
             ->withHttpOnly(true)
             ->withSecure(false)
             ->withSameSite('strict')
             ->withExpires($tokenData['refresh_expires_in']);
-
         $jsonResponse->headers->setCookie($cookie);
-
         return $jsonResponse;
     }
 }

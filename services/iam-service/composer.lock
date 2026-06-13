@@ -5282,12 +5282,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/thunguyen120296/LMS-Shared-Library.git",
-                "reference": "01a18354371bc4f36f74b01fe9935d89fbacca71"
+                "reference": "a3e20ceb8583e8d678f16a32437a6156a4edd5b7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thunguyen120296/LMS-Shared-Library/zipball/01a18354371bc4f36f74b01fe9935d89fbacca71",
-                "reference": "01a18354371bc4f36f74b01fe9935d89fbacca71",
+                "url": "https://api.github.com/repos/thunguyen120296/LMS-Shared-Library/zipball/a3e20ceb8583e8d678f16a32437a6156a4edd5b7",
+                "reference": "a3e20ceb8583e8d678f16a32437a6156a4edd5b7",
                 "shasum": ""
             },
             "require": {
@@ -5313,7 +5313,7 @@
                 "source": "https://github.com/thunguyen120296/LMS-Shared-Library/tree/main",
                 "issues": "https://github.com/thunguyen120296/LMS-Shared-Library/issues"
             },
-            "time": "2026-06-12T13:31:36+00:00"
+            "time": "2026-06-13T07:36:47+00:00"
         }
     ],
     "packages-dev": [
