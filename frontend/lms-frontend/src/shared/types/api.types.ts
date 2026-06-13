@@ -5,10 +5,15 @@ export interface ApiMeta {
   totalPages: number
 }
 
-export interface ApiResponse<T> {
+export interface ApiFieldError {
+  field: string
+  message: string
+}
+
+export interface ApiResponse<T = unknown> {
   success: boolean
   message: string
-  data: T
+  data?: T
   meta?: ApiMeta
-  errors: null | Array<{ field: string; message: string }>
+  errors?: ApiFieldError[] | null
 }

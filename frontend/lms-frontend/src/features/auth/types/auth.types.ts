@@ -1,7 +1,6 @@
 export interface LoginRequest {
   email: string
-  password: string,
-  fullName: string
+  password: string
 }
 
 export interface RegisterRequest {
@@ -22,4 +21,10 @@ export interface LoginResponse {
 
 export interface RegisterResponse {
   userId: string
+  email: string
+  message: string
+}
+
+export interface RefreshTokenResponse {
+  message: string
 }
