@@ -19,9 +19,9 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: (payload: RegisterRequest) => registerUser(payload),
-    onSuccess: () => {
+    onSuccess: (result) => {
       navigate('/login', {
-        state: { message: 'Đăng ký thành công! Vui lòng đăng nhập.' },
+        state: { message: `${result.message}. Vui lòng đăng nhập.` },
       })
     },
   })
