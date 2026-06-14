@@ -7,6 +7,14 @@ services:
     networks:
       - lms-network
 
+  course-service:
+    build:
+      context: ./services/course-service
+    volumes:
+      - ./services/course-service:/var/www/html
+    networks:
+      - lms-network
+
   nginx-gateway:
     image: nginx:alpine
     ports:
