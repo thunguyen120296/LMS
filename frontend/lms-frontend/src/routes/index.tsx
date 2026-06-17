@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import { createBrowserRouter } from 'react-router'
 import { Suspense } from 'react'
 import { LoginLayout, RegisterLayout } from '../shared/components/layout/AuthLayout'
+import { PERMISSIONS, ROLES } from '../features/auth/constants/permissions'
 
 const HomePage = lazy(() => import('../pages/HomePage'))
 const LoginPage = lazy(() => import('../pages/LoginPage'))
@@ -12,8 +13,10 @@ const CourseListPage = lazy(() => import('../pages/CourseListPage'))
 const DashboardPage = lazy(() => import('../pages/DashboardPage'))
 const MyCoursesPage = lazy(() => import('../pages/MyCoursesPage'))
 const ProfilePage = lazy(() => import('../pages/ProfilePage'))
+const ForbiddenPage = lazy(() => import('../pages/ForbiddenPage'))
 const PublicRoute = lazy(() => import('./PublicRoute'))
 const PrivateRoute = lazy(() => import('./PrivateRoute'))
+const GuestRoute = lazy(() => import('./GuestRoute'))
 
 const lazyRoutes = (children: React.ReactNode) => (
   <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-udemy-gray">Loading...</div>}>
@@ -44,12 +47,17 @@ const routes = createBrowserRouter([
     Component: () => lazyRoutes(<LoginLayout />),
     children: [
       {
-        path: '/login',
-        Component: () => lazyRoutes(<LoginPage />),
-      },
-      {
-        path: '/forgot-password',
-        Component: () => lazyRoutes(<ForgotPassword />),
+        Component: () => lazyRoutes(<GuestRoute />),
+        children: [
+          {
+            path: '/login',
+            Component: () => lazyRoutes(<LoginPage />),
+          },
+          {
+            path: '/forgot-password',
+            Component: () => lazyRoutes(<ForgotPassword />),
+          },
+        ],
       },
     ],
   },
@@ -57,8 +65,13 @@ const routes = createBrowserRouter([
     Component: () => lazyRoutes(<RegisterLayout />),
     children: [
       {
-        path: '/register',
-        Component: () => lazyRoutes(<RegisterPage />),
+        Component: () => lazyRoutes(<GuestRoute />),
+        children: [
+          {
+            path: '/register',
+            Component: () => lazyRoutes(<RegisterPage />),
+          },
+        ],
       },
     ],
   },
@@ -72,14 +85,21 @@ const routes = createBrowserRouter([
       },
       {
         path: '/my-courses',
+        handle: { permission: PERMISSIONS.COURSE_VIEW },
         Component: () => lazyRoutes(<MyCoursesPage />),
       },
       {
         path: '/profile',
         Component: () => lazyRoutes(<ProfilePage />),
       },
+      {
+        path: '/forbidden',
+        Component: () => lazyRoutes(<ForbiddenPage />),
+      },
     ],
   },
 ])
 
 export default routes
+
+export { PERMISSIONS, ROLES }
