@@ -1,0 +1,116 @@
+{
+  "realm": "lms",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "STUDENT",
+        "description": "Default role for students",
+        "composite": true,
+        "clientRole": false,
+        "composites": {
+          "client": {
+            "iam-service": [
+              "COURSE:VIEW"
+            ]
+          }
+        }
+      },
+      {
+        "name": "INSTRUCTOR",
+        "description": "Instructor role",
+        "composite": true,
+        "clientRole": false,
+        "composites": {
+          "client": {
+            "iam-service": [
+              "COURSE:VIEW",
+              "COURSE:CREATE"
+            ]
+          }
+        }
+      },
+      {
+        "name": "ADMIN",
+        "description": "Administrator role",
+        "composite": false,
+        "clientRole": false
+      }
+    ],
+    "client": {
+      "iam-service": [
+        {
+          "name": "COURSE:VIEW",
+          "description": "View courses",
+          "composite": false,
+          "clientRole": true
+        },
+        {
+          "name": "COURSE:CREATE",
+          "description": "Create courses",
+          "composite": false,
+          "clientRole": true
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "iam-service",
+      "name": "IAM Service",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "P7OfigNzod1lXfZi5Buq8Gh7OfELZFIa",
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": true,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-iam-service",
+      "enabled": true,
+      "serviceAccountClientId": "iam-service",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "query-users",
+          "view-users",
+          "query-roles",
+          "view-realm",
+          "query-clients",
+          "view-clients"
+        ]
+      }
+    }
+  ]
+}

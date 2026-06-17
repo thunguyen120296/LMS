@@ -1,35 +1,42 @@
+version: '3.8'
+
 services:
   iam-service:
     build:
       context: ./services/iam-service
     volumes:
-      - ./services/iam-service:/var/www/html
+      - ./services/iam-service:/var/www/html/iam
+      - ./infrastructure/jwt:/var/www/html/iam/config/jwt:ro
     networks:
       - lms-network
-
+  
   course-service:
     build:
       context: ./services/course-service
     volumes:
-      - ./services/course-service:/var/www/html
+      - ./services/course-service:/var/www/html/course
+      - ./infrastructure/jwt:/var/www/html/course/config/jwt:ro
     networks:
       - lms-network
 
   nginx-gateway:
     image: nginx:alpine
+    container_name: lms-nginx-gateway
     ports:
       - "8080:80"
     volumes:
-      - ./services/iam-service:/var/www/html
-      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
       - iam-service
       - keycloak
+      - course-service
     networks:
-      - lms-network
-  
+     - lms-network
+
   db:
     image: postgres:15-alpine
+    container_name: lms-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -42,6 +49,7 @@ services:
   
   redis:
     image: redis:alpine
+    container_name: lms-redis
     ports:
       - "6379:6379"
     networks:
@@ -49,6 +57,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
+    container_name: lms-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -57,7 +66,8 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
-    command: start-dev
+    container_name: lms-keycloak
+    command: start-dev --import-realm
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
@@ -76,7 +86,7 @@ services:
       - db
     networks:
       - lms-network
-  
+    
 networks:
   lms-network:
     driver: bridge

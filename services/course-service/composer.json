@@ -76,5 +76,8 @@
             "symfony/flex": true,
             "symfony/runtime": true
         }
+    },
+    "require-dev": {
+        "symfony/maker-bundle": "^1.67"
     }
 }
