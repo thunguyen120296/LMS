@@ -5,12 +5,14 @@ import axios, {
 } from 'axios'
 import { IAM_API_BASE } from './api.config'
 import type { ApiResponse } from '../shared/types/api.types'
+import { applyMeToStore, clearAuthSession } from '../features/auth/utils/auth.session'
+import type { MeResponse } from '../features/auth/types/auth.types'
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
 }
 
-const AUTH_SKIP_PATHS = ['/login', '/register', '/refresh/token']
+const AUTH_SKIP_PATHS = ['/login', '/register', '/refresh/token', '/logout', '/me']
 
 let refreshPromise: Promise<void> | null = null
 
@@ -26,15 +28,25 @@ function redirectToLogin() {
 }
 
 async function performTokenRefresh(): Promise<void> {
-  const { data } = await axios.post<ApiResponse>(
+  const refreshResponse = await axios.post<ApiResponse<null>>(
     `${IAM_API_BASE}/refresh/token`,
     {},
     { withCredentials: true },
   )
 
-  if (!data.success) {
-    throw new Error(data.message || 'Refresh token thất bại')
+  if (!refreshResponse.data.success) {
+    throw new Error(refreshResponse.data.message || 'Refresh token thất bại')
   }
+
+  const meResponse = await axios.get<ApiResponse<MeResponse>>(`${IAM_API_BASE}/me`, {
+    withCredentials: true,
+  })
+
+  if (!meResponse.data.success || !meResponse.data.data) {
+    throw new Error(meResponse.data.message || 'Không thể lấy thông tin người dùng')
+  }
+
+  applyMeToStore(meResponse.data.data)
 }
 
 function ensureFreshToken(): Promise<void> {
@@ -68,6 +80,7 @@ function attachAuthInterceptor(instance: AxiosInstance) {
         await ensureFreshToken()
         return instance(originalRequest)
       } catch (refreshError) {
+        clearAuthSession()
         redirectToLogin()
         return Promise.reject(refreshError)
       }

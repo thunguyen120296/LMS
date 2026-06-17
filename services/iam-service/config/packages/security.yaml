@@ -5,31 +5,26 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        # used to reload user from session & other features (e.g. switch_user)
-        # app_user_provider:
-        #     id: App\Security\UserProvider
-        jwt_user_provider:
-            id: App\Security\UserProvider
-            
+        keycloak_user_provider:
+            id: App\Security\KeycloakUserProvider
+
     firewalls:
         dev:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
-        # main:
-        #     lazy: true
-        #     provider: app_user_provider
 
+        # Nginx rewrite /api/iam/* -> /* trước khi vào Symfony
         api_public:
-            pattern: ^/api/iam/(login|register)$
+            pattern: ^/(login|register|refresh/token|logout)$
             stateless: true
             security: false
 
         api:
-            pattern: ^/api
+            pattern: ^/
             stateless: true
-            jwt: ~ # Kích hoạt JWT authentication cho firewall này
-            # custom_authenticator: App\Security\JwtAuthenticator
+            provider: keycloak_user_provider
+            jwt: ~
 
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -41,9 +36,12 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
-        - { path: ^/api/iam/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api/iam/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api/iam/api/v1, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/refresh/token, roles: PUBLIC_ACCESS }
+        - { path: ^/logout, roles: PUBLIC_ACCESS }
+        - { path: ^/me, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/v1, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:

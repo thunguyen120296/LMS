@@ -15,8 +15,17 @@ export interface AuthUser {
   fullName: string
 }
 
+export interface MeResponse {
+  user_info: AuthUser
+  permissions: string[]
+  roles: string[]
+}
+
 export interface LoginResponse {
   message: string
+  user_info: AuthUser
+  permissions: string[]
+  roles: string[]
 }
 
 export interface RegisterResponse {
@@ -27,4 +36,7 @@ export interface RegisterResponse {
 
 export interface RefreshTokenResponse {
   message: string
+  user_info: AuthUser
+  permissions: string[]
+  roles: string[]
 }

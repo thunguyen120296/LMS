@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 
-#[Route('/api/iam')]
+
 final class RegisterController extends BaseController
 {
     #[Route('/register', name: 'app_register', methods: ['POST'])]
@@ -52,8 +52,6 @@ final class RegisterController extends BaseController
         }
 
         $user = $registerService->createUser($payload);
-        $end = microtime(true);
-        error_log('Time taken: ' . ($end - $start) . ' seconds');
 
         return $this->success(
             [

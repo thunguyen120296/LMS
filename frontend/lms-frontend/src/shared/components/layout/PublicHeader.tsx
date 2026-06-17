@@ -1,4 +1,6 @@
 import { Link } from 'react-router'
+import { useAuthStore } from '../../../features/auth/store/auth.store'
+import { useLogout } from '../../../features/auth/hooks/useAuth'
 
 const NAV_CATEGORIES = [
   'Phát triển Web',
@@ -9,7 +11,14 @@ const NAV_CATEGORIES = [
   'Data Science',
 ]
 
-export default function PublicHeader() {
+interface PublicHeaderProps {
+  variant?: 'public' | 'private'
+}
+
+export default function PublicHeader({ variant = 'public' }: PublicHeaderProps) {
+  const user = useAuthStore((state) => state.user)
+  const logout = useLogout()
+
   return (
     <header className="sticky top-0 z-50 border-b border-udemy-border bg-white shadow-sm">
       <div className="mx-auto flex h-16 max-w-[1340px] items-center gap-4 px-4 md:px-6">
@@ -59,25 +68,58 @@ export default function PublicHeader() {
           >
             Khóa học
           </Link>
-          <button
-            type="button"
-            className="hidden px-3 py-2 text-sm font-medium text-udemy-dark hover:text-udemy-purple lg:block"
-          >
-            Dạy trên LMS
-          </button>
 
-          <Link
-            to="/login"
-            className="hidden px-3 py-2 text-sm font-medium text-udemy-dark hover:text-udemy-purple sm:block"
-          >
-            Đăng nhập
-          </Link>
-          <Link
-            to="/register"
-            className="rounded-sm border border-udemy-dark px-3 py-1.5 text-sm font-bold text-udemy-dark hover:bg-udemy-light-gray sm:px-4 sm:py-2"
-          >
-            Đăng ký
-          </Link>
+          {user ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="hidden px-3 py-2 text-sm font-medium text-udemy-dark hover:text-udemy-purple md:block"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/my-courses"
+                className="hidden px-3 py-2 text-sm font-medium text-udemy-dark hover:text-udemy-purple lg:block"
+              >
+                Khóa học của tôi
+              </Link>
+              <Link
+                to="/profile"
+                className="hidden px-3 py-2 text-sm font-medium text-udemy-dark hover:text-udemy-purple lg:block"
+              >
+                {user.fullName || user.email}
+              </Link>
+              <button
+                type="button"
+                onClick={() => logout.mutate()}
+                disabled={logout.isPending}
+                className="rounded-sm border border-udemy-dark px-3 py-1.5 text-sm font-bold text-udemy-dark hover:bg-udemy-light-gray sm:px-4 sm:py-2"
+              >
+                {logout.isPending ? 'Đang thoát...' : 'Đăng xuất'}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="hidden px-3 py-2 text-sm font-medium text-udemy-dark hover:text-udemy-purple lg:block"
+              >
+                Dạy trên LMS
+              </button>
+              <Link
+                to="/login"
+                className="hidden px-3 py-2 text-sm font-medium text-udemy-dark hover:text-udemy-purple sm:block"
+              >
+                Đăng nhập
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-sm border border-udemy-dark px-3 py-1.5 text-sm font-bold text-udemy-dark hover:bg-udemy-light-gray sm:px-4 sm:py-2"
+              >
+                Đăng ký
+              </Link>
+            </>
+          )}
 
           <button
             type="button"
@@ -91,19 +133,21 @@ export default function PublicHeader() {
         </div>
       </div>
 
-      <div className="hidden border-t border-udemy-border lg:block">
-        <div className="mx-auto flex max-w-[1340px] gap-1 overflow-x-auto px-4 py-2 scrollbar-hide md:px-6">
-          {NAV_CATEGORIES.map((cat) => (
-            <Link
-              key={cat}
-              to={`/course-list?category=${encodeURIComponent(cat)}`}
-              className="shrink-0 px-3 py-1.5 text-sm text-udemy-dark hover:text-udemy-purple"
-            >
-              {cat}
-            </Link>
-          ))}
+      {variant === 'public' && (
+        <div className="hidden border-t border-udemy-border lg:block">
+          <div className="mx-auto flex max-w-[1340px] gap-1 overflow-x-auto px-4 py-2 scrollbar-hide md:px-6">
+            {NAV_CATEGORIES.map((cat) => (
+              <Link
+                key={cat}
+                to={`/course-list?category=${encodeURIComponent(cat)}`}
+                className="shrink-0 px-3 py-1.5 text-sm text-udemy-dark hover:text-udemy-purple"
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </header>
   )
 }

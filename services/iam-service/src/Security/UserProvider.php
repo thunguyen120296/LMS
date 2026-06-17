@@ -15,14 +15,12 @@ class UserProvider implements UserProviderInterface
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        $user = $this->userRepository->findOneBy(['email' => $identifier]);
-        if(!$user){
-            $user = new User();
-            $user->setEmail($identifier);
-            $user->setUsername($identifier);
-            $user->onPrePersist();
-            $this->userRepository->save($user, true);
+        $user = $this->userRepository->findWithRolesAndPermissionsByEmail($identifier);
+
+        if (!$user) {
+            throw new UserNotFoundException(sprintf('User "%s" not found.', $identifier));
         }
+
         return $user;
     }
 

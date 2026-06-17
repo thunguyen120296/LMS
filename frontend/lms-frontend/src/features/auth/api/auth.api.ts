@@ -5,10 +5,12 @@ import { getApiErrorMessage } from '../../../shared/utils/apiError'
 import type {
   LoginRequest,
   LoginResponse,
+  MeResponse,
   RefreshTokenResponse,
   RegisterRequest,
   RegisterResponse,
 } from '../types/auth.types'
+import { applyMeToStore, clearAuthSession } from '../utils/auth.session'
 
 const client = apiClient(IAM_API_BASE)
 
@@ -25,6 +27,17 @@ function assertSuccess<T>(response: ApiResponse<T>, fallbackMessage: string): T 
   return response.data as T
 }
 
+export async function fetchMe(): Promise<MeResponse> {
+  try {
+    const { data } = await client.get<ApiResponse<MeResponse>>('/me')
+    const result = assertSuccess(data, 'Không thể lấy thông tin người dùng')
+    applyMeToStore(result)
+    return result
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Không thể lấy thông tin người dùng.'))
+  }
+}
+
 export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
   try {
     const { data } = await client.post<ApiResponse<null>>('/login', {
@@ -33,20 +46,41 @@ export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
     })
 
     assertSuccess(data, 'Đăng nhập thất bại')
+    const me = await fetchMe()
 
-    return { message: data.message }
+    return {
+      message: data.message,
+      user_info: me.user_info,
+      permissions: me.permissions,
+      roles: me.roles,
+    }
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Không thể đăng nhập. Vui lòng thử lại sau.'))
+  }
+}
+
+export async function logoutUser(): Promise<void> {
+  try {
+    await client.post<ApiResponse<null>>('/logout')
+  } catch {
+    // Cookie HttpOnly cần server xóa; nếu API lỗi vẫn clear state phía client.
+  } finally {
+    clearAuthSession()
   }
 }
 
 export async function refreshToken(): Promise<RefreshTokenResponse> {
   try {
     const { data } = await client.post<ApiResponse<null>>('/refresh/token')
-
     assertSuccess(data, 'Refresh token thất bại')
+    const me = await fetchMe()
 
-    return { message: data.message }
+    return {
+      message: data.message,
+      user_info: me.user_info,
+      permissions: me.permissions,
+      roles: me.roles,
+    }
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Không thể làm mới phiên đăng nhập.'))
   }
