@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -67,18 +65,6 @@ class User implements UserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserRole::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $userRoles;
-
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: RefreshToken::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $refreshTokens;
-
-    public function __construct()
-    {
-        $this->userRoles     = new ArrayCollection();
-        $this->refreshTokens = new ArrayCollection();
-    }
-
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {
@@ -92,8 +78,6 @@ class User implements UserInterface
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    // --- UserInterface ---
-
     public function getUserIdentifier(): string
     {
         return $this->email;
@@ -102,13 +86,7 @@ class User implements UserInterface
     /** @return list<string> */
     public function getRoles(): array
     {
-        $roles = $this->userRoles
-            ->map(fn(UserRole $ur) => 'ROLE_' . strtoupper($ur->getRole()->getName()))
-            ->toArray();
-
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
+        return ['ROLE_USER'];
     }
 
     public function softDelete(): void
@@ -127,8 +105,6 @@ class User implements UserInterface
     {
         return $this->deletedAt !== null;
     }
-
-    // --- Getters & Setters ---
 
     public function getId(): string { return $this->id; }
 
@@ -173,7 +149,4 @@ class User implements UserInterface
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
     public function getDeletedAt(): ?\DateTimeImmutable { return $this->deletedAt; }
-
-    public function getUserRoles(): Collection { return $this->userRoles; }
-    public function getRefreshTokens(): Collection { return $this->refreshTokens; }
 }

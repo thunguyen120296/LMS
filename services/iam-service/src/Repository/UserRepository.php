@@ -47,33 +47,6 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findWithRoles(string $id): ?User
-    {
-        return $this->createQueryBuilder('u')
-            ->leftJoin('u.userRoles', 'ur')
-            ->leftJoin('ur.role', 'r')
-            ->addSelect('ur', 'r')
-            ->where('u.id = :id')
-            ->andWhere('u.deletedAt IS NULL')
-            ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
-    public function findWithRolesAndPermissionsByEmail(string $email): ?User
-    {
-        return $this->createQueryBuilder('u')
-            ->leftJoin('u.userRoles', 'ur')->addSelect('ur')
-            ->leftJoin('ur.role', 'r')->addSelect('r')
-            ->leftJoin('r.rolePermissions', 'rp')->addSelect('rp')
-            ->leftJoin('rp.permission', 'p')->addSelect('p')
-            ->where('u.email = :email')
-            ->andWhere('u.deletedAt IS NULL')
-            ->setParameter('email', $email)
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-
     /**
      * @return User[]
      */
@@ -110,6 +83,7 @@ class UserRepository extends ServiceEntityRepository
     public function save(User $user, bool $flush = false): void
     {
         $this->getEntityManager()->persist($user);
+
         if ($flush) {
             $this->getEntityManager()->flush();
         }
@@ -118,6 +92,7 @@ class UserRepository extends ServiceEntityRepository
     public function remove(User $user, bool $flush = false): void
     {
         $this->getEntityManager()->remove($user);
+
         if ($flush) {
             $this->getEntityManager()->flush();
         }

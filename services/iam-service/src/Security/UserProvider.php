@@ -15,7 +15,7 @@ class UserProvider implements UserProviderInterface
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        $user = $this->userRepository->findWithRolesAndPermissionsByEmail($identifier);
+        $user = $this->userRepository->findByEmail($identifier);
 
         if (!$user) {
             throw new UserNotFoundException(sprintf('User "%s" not found.', $identifier));

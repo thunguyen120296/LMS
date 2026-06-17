@@ -12,8 +12,8 @@ class UserFixture extends Fixture
     {
         $user = new User();
         $user->setEmail('admin@gmail.com');
-        $user->setPasswordHash('admin');
         $user->setUsername('admin@gmail.com');
+        $user->setSsoProvider('keycloak');
         $manager->persist($user);
         $manager->flush();
     }
