@@ -21,8 +21,8 @@ class RegisterService
         private readonly HttpClientInterface $client,
         private readonly UserRepository $userRepository,
         private readonly string $keycloakUrl,
-        private readonly string $keycloakAdmin,
-        private readonly string $keycloakAdminPassword,
+        private readonly string $clientId,
+        private readonly string $clientSecret,
         BaseLogService $logger,
     ) {
         $this->logger = $logger->for('register');
@@ -51,9 +51,12 @@ class RegisterService
             ]);
         }
 
+        // 1. Giao tiếp với Keycloak để tạo User và gán Role bên SSO
         $adminToken = $this->getAdminToken();
         $ssoSubject = $this->createKeycloakUser($adminToken, $payload);
+        $this->assignDefaultKeycloakRoles($adminToken, $ssoSubject);
 
+        // 2. Chỉ lưu thông tin User tối thiểu kèm ssoSubject xuống DB cục bộ
         $user = new User();
         $user->setEmail($email);
         $user->setUsername($email);
@@ -87,13 +90,12 @@ class RegisterService
         ));
 
         try {
-            $response = $this->client->request('POST', $this->keycloakUrl . '/realms/master/protocol/openid-connect/token', [
+            $response = $this->client->request('POST', $this->keycloakUrl . '/realms/lms/protocol/openid-connect/token', [
                 'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
                 'body' => http_build_query([
-                    'grant_type' => 'password',
-                    'client_id' => 'admin-cli',
-                    'username' => $this->keycloakAdmin,
-                    'password' => $this->keycloakAdminPassword,
+                    'grant_type' => 'client_credentials',
+                    'client_id' => $this->clientId,
+                    'client_secret' => $this->clientSecret,
                 ]),
             ]);
 
@@ -131,14 +133,13 @@ class RegisterService
         ));
 
         try {
-            $response = $this->client->request('POST', $this->keycloakUrl . '/admin/realms/master/users', [
+            $response = $this->client->request('POST', $this->keycloakUrl . '/admin/realms/lms/users', [
                 'headers' => [
-                    'Content-Type' => 'application/json',
                     'Authorization' => 'Bearer ' . $adminToken,
                 ],
-                'body' => json_encode([
-                    'username' => $payload['email'],
-                    'email' => $payload['email'],
+                'json' => [
+                    'username' => trim($payload['email']),
+                    'email' => trim($payload['email']),
                     'enabled' => true,
                     'emailVerified' => false,
                     'firstName' => $this->extractFirstName($payload['fullName'] ?? null),
@@ -150,7 +151,7 @@ class RegisterService
                             'temporary' => false,
                         ],
                     ],
-                ]),
+                ],
             ]);
 
             $statusCode = $response->getStatusCode();
@@ -167,12 +168,13 @@ class RegisterService
             }
 
             if ($statusCode !== 201) {
+                $errorResponse = $response->getContent(false);
                 $this->logger->error('Keycloak user creation failed', null, new LogContext(
                     action: 'register.create_keycloak_user',
-                    extra: ['email' => $payload['email'], 'statusCode' => $statusCode],
+                    extra: ['email' => $payload['email'], 'statusCode' => $statusCode, 'keycloak_error' => $errorResponse],
                 ));
 
-                throw new ApiException('Tạo người dùng thất bại', 500);
+                throw new ApiException('Tạo người dùng thất bại từ Keycloak: ' . $errorResponse, 500);
             }
 
             $location = $response->getHeaders()['location'][0] ?? null;
@@ -185,44 +187,64 @@ class RegisterService
                 throw new ApiException('Tạo người dùng thất bại', 500);
             }
 
-            $this->logger->info('Keycloak user created', new LogContext(
-                action: 'register.create_keycloak_user',
-                extra: [
-                    'email' => $payload['email'],
-                    'ssoSubject' => $matches[1],
-                ],
-            ));
-
             return $matches[1];
         } catch (ClientExceptionInterface $e) {
+            $rawResponse = $e->getResponse()->getContent(false);
             if ($e->getResponse()->getStatusCode() === 409) {
-                $this->logger->warning('Keycloak rejected registration: email already exists', new LogContext(
-                    action: 'register.create_keycloak_user',
-                    extra: ['email' => $payload['email'], 'statusCode' => 409],
-                ));
-
                 throw new ApiException('Email đã được sử dụng', 409, [
                     ['field' => 'email', 'message' => 'Email đã được sử dụng'],
                 ]);
             }
 
-            $this->logger->error('Keycloak user creation request failed', $e, new LogContext(
-                action: 'register.create_keycloak_user',
-                extra: [
-                    'email' => $payload['email'],
-                    'statusCode' => $e->getResponse()->getStatusCode(),
-                ],
-            ));
-
-            throw new ApiException('Tạo người dùng thất bại', 500);
+            throw new ApiException('Tạo người dùng thất bại: ' . $rawResponse, 500);
         } catch (TransportExceptionInterface $e) {
-            $this->logger->error('Keycloak user creation transport error', $e, new LogContext(
-                action: 'register.create_keycloak_user',
-                extra: ['email' => $payload['email']],
-            ));
-
             throw new ApiException('Không thể kết nối dịch vụ xác thực', 500);
         }
+    }
+
+    private function assignDefaultKeycloakRoles(string $adminToken, string $userId): void
+    {
+        $this->assignRealmRole($adminToken, $userId, 'STUDENT');
+    }
+
+    private function assignRealmRole(string $adminToken, string $userId, string $roleName): void
+    {
+        $role = $this->fetchRealmRole($adminToken, $roleName);
+
+        $this->client->request(
+            'POST',
+            $this->keycloakUrl . '/admin/realms/lms/users/' . $userId . '/role-mappings/realm',
+            [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $adminToken,
+                ],
+                'body' => json_encode([$role]),
+            ],
+        );
+    }
+
+    /** @return array<string, mixed> */
+    private function fetchRealmRole(string $adminToken, string $roleName): array
+    {
+        $response = $this->client->request(
+            'GET',
+            $this->keycloakUrl . '/admin/realms/lms/roles/' . rawurlencode($roleName),
+            [
+                'headers' => ['Authorization' => 'Bearer ' . $adminToken],
+            ],
+        );
+
+        if ($response->getStatusCode() !== 200) {
+            throw new ApiException('Role Keycloak chưa được cấu hình: ' . $roleName, 500);
+        }
+
+        $role = $response->toArray();
+
+        return [
+            'id' => $role['id'] ?? null,
+            'name' => $role['name'] ?? null,
+        ];
     }
 
     private function extractFirstName(?string $fullName): ?string

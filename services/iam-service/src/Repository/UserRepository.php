@@ -60,6 +60,20 @@ class UserRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findWithRolesAndPermissionsByEmail(string $email): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.userRoles', 'ur')->addSelect('ur')
+            ->leftJoin('ur.role', 'r')->addSelect('r')
+            ->leftJoin('r.rolePermissions', 'rp')->addSelect('rp')
+            ->leftJoin('rp.permission', 'p')->addSelect('p')
+            ->where('u.email = :email')
+            ->andWhere('u.deletedAt IS NULL')
+            ->setParameter('email', $email)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     /**
      * @return User[]
      */

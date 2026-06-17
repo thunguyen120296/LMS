@@ -8,8 +8,6 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     keycloak_url: '%env(KEYCLOAK_URL)%'
-    keycloak_admin: '%env(KEYCLOAK_ADMIN)%'
-    keycloak_admin_password: '%env(KEYCLOAK_ADMIN_PASSWORD)%'
     client_id: '%env(CLIENT_ID)%'
     client_secret: '%env(CLIENT_SECRET)%'
     grant_type: '%env(GRAND_TYPE)%'
@@ -26,6 +24,11 @@ services:
     App\:
         resource: '../src/'
 
+    App\Security\JwtFailureListener:
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_invalid, method: onJWTInvalid }
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_not_found, method: onJWTNotFound }
+
     Lms\Shared\EventSubscriber\ApiExceptionSubscriber:
         arguments:
             $debug: '%kernel.debug%'
@@ -37,8 +40,12 @@ services:
     App\Service\RegisterService:
         arguments:
             $keycloakUrl: '%keycloak_url%'
-            $keycloakAdmin: '%keycloak_admin%'
-            $keycloakAdminPassword: '%keycloak_admin_password%'
+            $clientId: '%client_id%'
+            $clientSecret: '%client_secret%'
+
+    App\Service\KeycloakClaimsReader:
+        arguments:
+            $clientId: '%client_id%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

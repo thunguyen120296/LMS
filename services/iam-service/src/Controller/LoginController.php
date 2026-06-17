@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\AuthCookieFactory;
 use Lms\Shared\Controller\BaseController;
 use Lms\Shared\Exception\ApiException;
-use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-#[Route('/api/iam')]
 final class LoginController extends BaseController
 {
     #[Route('/login', name: 'app_login', methods: ['POST'])]
-    public function login(Request $request, HttpClientInterface $client): JsonResponse
-    {
+    public function login(
+        Request $request,
+        HttpClientInterface $client,
+        AuthCookieFactory $cookieFactory,
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
         if (!is_array($data)) {
@@ -28,7 +30,7 @@ final class LoginController extends BaseController
             throw new ApiException('Dữ liệu không hợp lệ', 400);
         }
 
-        $url = $this->getParameter('keycloak_url') . '/realms/master/protocol/openid-connect/token';
+        $url = $this->getParameter('keycloak_url') . '/realms/lms/protocol/openid-connect/token';
         $response = $client->request('POST', $url, [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'body' => http_build_query([
@@ -45,24 +47,14 @@ final class LoginController extends BaseController
         }
 
         $tokenData = $response->toArray();
-
         $jsonResponse = $this->success(null, 'Đăng nhập thành công');
 
-        $cookie = Cookie::create('auth_token')
-            ->withValue($tokenData['access_token'])
-            ->withHttpOnly(true)
-            ->withSecure(false)
-            ->withSameSite('strict')
-            ->withExpires($tokenData['expires_in']);
-
-        $cookieRefreshToken = Cookie::create('refresh_token')
-            ->withValue($tokenData['refresh_token'])
-            ->withHttpOnly(true)
-            ->withSecure(false)
-            ->withSameSite('strict')
-            ->withExpires($tokenData['refresh_expires_in']);
-
-        $jsonResponse->headers->setCookie($cookie);
+        $jsonResponse->headers->setCookie(
+            $cookieFactory->createAuthTokenCookie($request, $tokenData['access_token'], (int) $tokenData['expires_in']),
+        );
+        $jsonResponse->headers->setCookie(
+            $cookieFactory->createRefreshTokenCookie($request, $tokenData['refresh_token'], (int) $tokenData['refresh_expires_in']),
+        );
 
         return $jsonResponse;
     }
