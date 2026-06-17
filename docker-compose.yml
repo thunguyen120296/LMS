@@ -18,6 +18,42 @@ services:
       - ./infrastructure/jwt:/var/www/html/course/config/jwt:ro
     networks:
       - lms-network
+  
+  payment-service:
+    build:
+      context: ./services/payment-service
+    volumes:
+      - ./services/payment-service:/var/www/html/payment
+      - ./infrastructure/jwt:/var/www/html/payment/config/jwt:ro
+    networks:
+      - lms-network
+
+  enrollment-service:
+    build:
+      context: ./services/enrollment-service
+    volumes:
+      - ./services/enrollment-service:/var/www/html/enrollment
+      - ./infrastructure/jwt:/var/www/html/enrollment/config/jwt:ro
+    networks:
+      - lms-network
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+    volumes:
+      - ./services/notification-service:/var/www/html/notification
+      - ./infrastructure/jwt:/var/www/html/notification/config/jwt:ro
+    networks:
+      - lms-network
+  
+  assessment-service:
+    build:
+      context: ./services/assessment-service
+    volumes:
+      - ./services/assessment-service:/var/www/html/assessment
+      - ./infrastructure/jwt:/var/www/html/assessment/config/jwt:ro
+    networks:
+      - lms-network
 
   nginx-gateway:
     image: nginx:alpine
@@ -41,6 +77,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
     volumes:
       - ./infrastructure/postgres/data:/var/lib/postgresql/data
       - ./infrastructure/postgres/init-schema.sql:/docker-entrypoint-initdb.d/init-schema.sql
