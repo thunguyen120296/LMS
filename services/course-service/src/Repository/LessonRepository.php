@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Course\Repository;
+namespace App\Repository;
 
-use App\Course\Entity\Lesson;
-use App\Course\Enum\LessonType;
+use App\Entity\Lesson;
+use App\Enum\LessonType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -113,7 +113,7 @@ class LessonRepository extends ServiceEntityRepository
     public function shiftSortOrder(string $sectionId, int $fromPosition, int $delta = 1): void
     {
         $this->getEntityManager()->createQuery(
-            'UPDATE App\Course\Entity\Lesson l
+            'UPDATE App\Entity\Lesson l
              SET l.sortOrder = l.sortOrder + :delta
              WHERE l.section = :sectionId
              AND l.sortOrder >= :from'

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Course\Entity;
+namespace App\Entity;
 
-use App\Course\Repository\CourseTagRepository;
+use App\Repository\CourseTagRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CourseTagRepository::class)]

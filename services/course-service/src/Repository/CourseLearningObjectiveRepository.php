@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Course\Repository;
+namespace App\Repository;
  
-use App\Course\Entity\CourseLearningObjective;
+use App\Entity\CourseLearningObjective;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
  
@@ -32,7 +32,7 @@ class CourseLearningObjectiveRepository extends ServiceEntityRepository
     public function deleteAllByCourse(string $courseId): void
     {
         $this->getEntityManager()->createQuery(
-            'DELETE FROM App\Course\Entity\CourseLearningObjective lo WHERE lo.course = :courseId'
+            'DELETE FROM App\Entity\CourseLearningObjective lo WHERE lo.course = :courseId'
         )
         ->setParameter('courseId', $courseId)
         ->execute();

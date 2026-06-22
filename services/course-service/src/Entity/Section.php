@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Course\Entity;
+namespace App\Entity;
 
-use App\Course\Repository\SectionRepository;
+use App\Repository\SectionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
