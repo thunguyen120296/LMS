@@ -8,6 +8,10 @@ services:
       - ./services/iam-service:/var/www/html/iam
       - ./infrastructure/jwt:/var/www/html/iam/config/jwt:ro
       - ./services/iam-service/var/log:/var/www/html/iam/var/log
+    depends_on:
+      - db
+      - rabbitmq
+      - keycloak
     networks:
       - lms-network
   
@@ -48,6 +52,23 @@ services:
       - ./services/notification-service:/var/www/html/notification
       - ./infrastructure/jwt:/var/www/html/notification/config/jwt:ro
       - ./services/notification-service/var/log:/var/www/html/notification/var/log
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - lms-network
+
+  notification-worker:
+    build:
+      context: ./services/notification-service
+    command: php bin/console messenger:consume iam_events -vv --time-limit=3600
+    volumes:
+      - ./services/notification-service:/var/www/html/notification
+    depends_on:
+      - db
+      - rabbitmq
+      - notification-service
+    restart: unless-stopped
     networks:
       - lms-network
   
@@ -108,10 +129,21 @@ services:
     networks:
       - lms-network
 
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025" # SMTP server
+      - "8025:8025" # Giao diện web UI
+    networks:
+      - lms-network
+
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     container_name: lms-keycloak
     command: start-dev --import-realm
+    volumes:
+      - ./infrastructure/keycloak/import:/opt/keycloak/data/import
+      - ./infrastructure/keycloak/themes:/opt/keycloak/themes
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
@@ -124,6 +156,24 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HTTP_ENABLED: true
       KC_PROXY_HEADERS: xforwarded
+      KC_SPI_EMAIL_SENDER_DEFAULT_MAIL_SMTP_SSL_PROTOCOLS: TLSv1.2 TLSv1.3
+      KC_SPI_EMAIL_SENDER_DEFAULT_MAIL_SMTP_SSL_TRUST: smtp.gmail.com
+
+      # KC_SMTP_HOST: ${KC_SMTP_HOST}
+      # KC_SMTP_PORT: ${KC_SMTP_PORT}
+      # KC_SMTP_FROM: ${KC_SMTP_FROM}
+      # KC_SMTP_AUTH: ${KC_SMTP_AUTH}
+      # KC_SMTP_USER: ${KC_SMTP_USER}
+      # KC_SMTP_PASSWORD: ${KC_SMTP_PASSWORD}
+      # KC_SMTP_STARTTLS: ${KC_SMTP_STARTTLS}
+      # KC_SMTP_SSL: ${KC_SMTP_SSL}
+
+      KC_SMTP_HOST: ${KC_SMTP_HOST}
+      KC_SMTP_PORT: ${KC_SMTP_PORT}
+      KC_SMTP_FROM: ${KC_SMTP_FROM}
+      KC_SMTP_AUTH: ${KC_SMTP_AUTH}
+      KC_SMTP_STARTTLS: ${KC_SMTP_STARTTLS}
+      KC_SMTP_SSL: ${KC_SMTP_SSL}
     ports:
       - "8082:8080"
     depends_on:
@@ -131,25 +181,25 @@ services:
     networks:
       - lms-network
 
-  loki:
-    image: grafana/loki:latest
-    ports:
-      - "3100:3100"
-    networks:
-      - lms-network
+  # loki:
+  #   image: grafana/loki:latest
+  #   ports:
+  #     - "3100:3100"
+  #   networks:
+  #     - lms-network
     
-  promtail:
-    image: grafana/promtail:latest
-    volumes:
-      - ./var/lib/docker/containers:/var/lib/docker/containers:ro
-    command: -config.file=/etc/promtail/config.yaml
+  # promtail:
+  #   image: grafana/promtail:latest
+  #   volumes:
+  #     - ./var/lib/docker/containers:/var/lib/docker/containers:ro
+  #   command: -config.file=/etc/promtail/config.yaml
 
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3001:3000"
-    networks:
-      - lms-network
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   ports:
+  #     - "3001:3000"
+  #   networks:
+  #     - lms-network
 networks:
   lms-network:
     driver: bridge

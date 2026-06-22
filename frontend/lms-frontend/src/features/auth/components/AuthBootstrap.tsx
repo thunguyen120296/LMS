@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchMe } from '../api/auth.api'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { restoreSession } from '../api/auth.api'
 import { useAuthStore } from '../store/auth.store'
-import { clearAuthSession } from '../utils/auth.session'
+import { subscribeToAuthSessionChanges } from '../utils/auth.session'
 import AuthLoading from '../../../shared/components/ui/display/AuthLoading'
 
 interface AuthBootstrapProps {
@@ -9,16 +10,20 @@ interface AuthBootstrapProps {
 }
 
 export default function AuthBootstrap({ children }: AuthBootstrapProps) {
+  const queryClient = useQueryClient()
   const setInitialized = useAuthStore((state) => state.setInitialized)
+
+  useEffect(() => {
+    return subscribeToAuthSessionChanges(() => {
+      void queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+    })
+  }, [queryClient])
 
   const { isPending } = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
       try {
-        return await fetchMe()
-      } catch {
-        clearAuthSession()
-        return null
+        return await restoreSession()
       } finally {
         setInitialized(true)
       }

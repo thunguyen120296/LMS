@@ -8,6 +8,9 @@ const HomePage = lazy(() => import('../pages/HomePage'))
 const LoginPage = lazy(() => import('../pages/LoginPage'))
 const RegisterPage = lazy(() => import('../pages/RegisterPage'))
 const ForgotPassword = lazy(() => import('../pages/ForgotPassword'))
+const CheckEmailPage = lazy(() => import('../pages/CheckEmailPage'))
+const VerifyEmailPage = lazy(() => import('../pages/VerifyEmailPage'))
+const ResetPasswordPage = lazy(() => import('../pages/ResetPasswordPage'))
 const CourseDetailPage = lazy(() => import('../pages/CourseDetailPage'))
 const CourseListPage = lazy(() => import('../pages/CourseListPage'))
 const DashboardPage = lazy(() => import('../pages/DashboardPage'))
@@ -57,9 +60,21 @@ const routes = createBrowserRouter([
             path: '/forgot-password',
             Component: () => lazyRoutes(<ForgotPassword />),
           },
+          {
+            path: '/check-email',
+            Component: () => lazyRoutes(<CheckEmailPage />),
+          },
         ],
       },
     ],
+  },
+  {
+    path: '/verify-email',
+    Component: () => lazyRoutes(<VerifyEmailPage />),
+  },
+  {
+    path: '/reset-password',
+    Component: () => lazyRoutes(<ResetPasswordPage />),
   },
   {
     Component: () => lazyRoutes(<RegisterLayout />),

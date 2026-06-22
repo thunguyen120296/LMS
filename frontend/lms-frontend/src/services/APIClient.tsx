@@ -12,7 +12,7 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
 }
 
-const AUTH_SKIP_PATHS = ['/login', '/register', '/refresh/token', '/logout', '/me']
+const AUTH_SKIP_PATHS = ['/login', '/register', '/refresh/token', '/logout', '/verify-email']
 
 let refreshPromise: Promise<void> | null = null
 

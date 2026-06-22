@@ -10,7 +10,11 @@ import type {
   RegisterRequest,
   RegisterResponse,
 } from '../types/auth.types'
-import { applyMeToStore, clearAuthSession } from '../utils/auth.session'
+import {
+  applyMeToStore,
+  clearAuthSession,
+  notifyAuthSessionChanged,
+} from '../utils/auth.session'
 
 const client = apiClient(IAM_API_BASE)
 
@@ -38,6 +42,19 @@ export async function fetchMe(): Promise<MeResponse> {
   }
 }
 
+export async function restoreSession(): Promise<MeResponse | null> {
+  try {
+    return await fetchMe()
+  } catch {
+    try {
+      return await refreshToken()
+    } catch {
+      clearAuthSession()
+      return null
+    }
+  }
+}
+
 export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
   try {
     const { data } = await client.post<ApiResponse<null>>('/login', {
@@ -47,6 +64,7 @@ export async function loginUser(payload: LoginRequest): Promise<LoginResponse> {
 
     assertSuccess(data, 'Đăng nhập thất bại')
     const me = await fetchMe()
+    notifyAuthSessionChanged()
 
     return {
       message: data.message,
@@ -66,6 +84,7 @@ export async function logoutUser(): Promise<void> {
     // Cookie HttpOnly cần server xóa; nếu API lỗi vẫn clear state phía client.
   } finally {
     clearAuthSession()
+    notifyAuthSessionChanged()
   }
 }
 
@@ -103,5 +122,68 @@ export async function registerUser(payload: RegisterRequest): Promise<RegisterRe
     }
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Không thể đăng ký. Vui lòng thử lại sau.'))
+  }
+}
+
+export async function verifyEmail(key: string): Promise<{ message: string }> {
+  try {
+    const { data } = await client.get<ApiResponse<null>>('/verify-email', {
+      params: { key },
+    })
+
+    assertSuccess(data, 'Xác minh email thất bại')
+
+    return {
+      message: data.message || 'Email đã được xác minh thành công. Vui lòng đăng nhập.',
+    }
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Không thể xác minh email. Vui lòng thử lại.'))
+  }
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  try {
+    const { data } = await client.post<ApiResponse<null>>('/forgot-password', { email })
+    assertSuccess(data, 'Không thể gửi yêu cầu đặt lại mật khẩu')
+
+    return {
+      message:
+        data.message ||
+        'Nếu email tồn tại trong hệ thống, chúng tôi sẽ gửi hướng dẫn tới địa chỉ email của bạn',
+    }
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Không thể gửi yêu cầu đặt lại mật khẩu.'))
+  }
+}
+
+export async function validateResetPasswordKey(key: string): Promise<{ message: string }> {
+  try {
+    const { data } = await client.get<ApiResponse<null>>('/reset-password/validate', {
+      params: { key },
+    })
+    assertSuccess(data, 'Liên kết đặt lại mật khẩu không hợp lệ')
+
+    return {
+      message: data.message || 'Liên kết đặt lại mật khẩu hợp lệ.',
+    }
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.'))
+  }
+}
+
+export async function resetPassword(payload: {
+  key: string
+  password: string
+  confirmPassword: string
+}): Promise<{ message: string }> {
+  try {
+    const { data } = await client.post<ApiResponse<null>>('/reset-password', payload)
+    assertSuccess(data, 'Không thể đặt lại mật khẩu')
+
+    return {
+      message: data.message || 'Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập.',
+    }
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Không thể đặt lại mật khẩu. Vui lòng thử lại.'))
   }
 }
