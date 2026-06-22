@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Payment\Repository;
+namespace App\Repository;
 
-use App\Payment\Entity\OrderItem;
+use App\Entity\OrderItem;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -32,7 +32,7 @@ class OrderItemRepository extends ServiceEntityRepository
             ->andWhere('i.courseId IN (
                 SELECT c.id FROM App\Course\Entity\Course c WHERE c.instructorId = :instructorId
             )')
-            ->setParameter('status', \App\Payment\Enum\OrderStatus::Paid)
+            ->setParameter('status', \App\Enum\OrderStatus::Paid)
             ->setParameter('instructorId', $instructorId)
             ->groupBy('i.courseId, i.courseTitle')
             ->orderBy('revenue', 'DESC')

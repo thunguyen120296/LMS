@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Payment\Repository;
+namespace App\Repository;
 
-use App\Payment\Entity\Coupon;
+use App\Entity\Coupon;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

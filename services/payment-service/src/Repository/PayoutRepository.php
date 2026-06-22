@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Payment\Repository;
+namespace App\Repository;
 
-use App\Payment\Entity\Payout;
-use App\Payment\Enum\PayoutStatus;
+use App\Entity\Payout;
+use App\Enum\PayoutStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
