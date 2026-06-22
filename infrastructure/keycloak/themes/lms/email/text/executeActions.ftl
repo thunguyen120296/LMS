@@ -21,6 +21,6 @@ Quản trị viên vừa yêu cầu bạn cập nhật tài khoản ${realmName}
 ${actionDescription}
 ${actionUrl}
 
-Liên kết này sẽ hết hạn sau ${linkExpiration?datetime?string("dd/MM/yyyy HH:mm")}.
+Liên kết này sẽ hết hạn sau ${linkExpirationFormatter(linkExpiration)}.
 
 ${ignoreMessage}
