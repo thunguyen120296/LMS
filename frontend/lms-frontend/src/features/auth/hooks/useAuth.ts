@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
-import { forgotPassword, loginUser, logoutUser, registerUser } from '../api/auth.api'
+import { fetchProfile, forgotPassword, loginUser, logoutUser, registerUser, updateProfile } from '../api/auth.api'
 import { useAuthStore } from '../store/auth.store'
-import type { LoginRequest, RegisterRequest } from '../types/auth.types'
+import type { LoginRequest, RegisterRequest, UpdateProfileRequest } from '../types/auth.types'
 
 export function useAuth() {
   const user = useAuthStore((state) => state.user)
@@ -87,4 +87,23 @@ export function usePermission(permission: string) {
 
 export function useRole(role: string) {
   return useAuthStore((state) => state.hasRole(role))
+}
+
+export function useProfile() {
+  return useQuery({
+    queryKey: ['auth', 'profile'],
+    queryFn: fetchProfile,
+  })
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: UpdateProfileRequest) => updateProfile(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth', 'profile'] })
+      queryClient.invalidateQueries({ queryKey: ['auth', 'session'] })
+    },
+  })
 }

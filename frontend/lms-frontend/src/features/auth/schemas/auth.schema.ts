@@ -61,3 +61,21 @@ export const registerSchema = z
   })
 
 export type RegisterFormValues = z.infer<typeof registerSchema>
+
+export const profileSchema = z.object({
+  fullName: z
+    .string()
+    .min(1, 'Vui lòng nhập họ tên')
+    .min(2, 'Họ tên phải có ít nhất 2 ký tự'),
+  avatarUrl: z
+    .string()
+    .url('URL ảnh đại diện không hợp lệ')
+    .optional()
+    .or(z.literal('')),
+  locale: z
+    .string()
+    .min(1, 'Vui lòng chọn ngôn ngữ')
+    .max(10, 'Ngôn ngữ không hợp lệ'),
+})
+
+export type ProfileFormValues = z.infer<typeof profileSchema>

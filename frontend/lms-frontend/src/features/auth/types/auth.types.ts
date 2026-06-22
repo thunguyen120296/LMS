@@ -40,3 +40,25 @@ export interface RefreshTokenResponse {
   permissions: string[]
   roles: string[]
 }
+
+export interface UserProfile {
+  id: string
+  email: string
+  username: string
+  firstName: string | null
+  lastName: string | null
+  fullName: string
+  avatarUrl: string | null
+  locale: string
+  emailVerified: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UpdateProfileRequest {
+  fullName?: string
+  firstName?: string
+  lastName?: string
+  avatarUrl?: string | null
+  locale?: string
+}
