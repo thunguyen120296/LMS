@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Enrollment\Entity;
+namespace App\Entity;
 
-use App\Enrollment\Repository\CertificateRepository;
+use App\Repository\CertificateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

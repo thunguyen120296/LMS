@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace App\Enrollment\Enum;
+namespace App\Enum;
 
 enum EnrollmentStatus: string
 {
