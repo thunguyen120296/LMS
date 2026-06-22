@@ -26,7 +26,7 @@ final class RefreshTokenController extends BaseController
             throw new ApiException('Refresh token không tồn tại', 401);
         }
 
-        $url = $this->getParameter('keycloak_url') . '/realms/master/protocol/openid-connect/token';
+        $url = $this->getParameter('keycloak_url') . '/realms/lms/protocol/openid-connect/token';
         $response = $client->request('POST', $url, [
             'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'body' => http_build_query([

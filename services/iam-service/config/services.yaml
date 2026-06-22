@@ -1,26 +1,19 @@
 # yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 
-# This file is the entry point to configure your own services.
-# Files in the packages/ subdirectory configure your dependencies.
-# See also https://symfony.com/doc/current/service_container/import.html
-
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     keycloak_url: '%env(KEYCLOAK_URL)%'
     client_id: '%env(CLIENT_ID)%'
     client_secret: '%env(CLIENT_SECRET)%'
     grant_type: '%env(GRAND_TYPE)%'
     scope: '%env(SCOPE)%'
+    frontend_url: '%env(FRONTEND_URL)%'
+    keycloak_webhook_secret: '%env(KEYCLOAK_WEBHOOK_SECRET)%'
 
 services:
-    # default configuration for services in *this* file
     _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        autowire: true
+        autoconfigure: true
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
 
@@ -40,12 +33,22 @@ services:
     App\Service\RegisterService:
         arguments:
             $keycloakUrl: '%keycloak_url%'
+            $frontendUrl: '%frontend_url%'
+
+    App\Service\KeycloakAdminService:
+        arguments:
+            $keycloakUrl: '%keycloak_url%'
             $clientId: '%client_id%'
             $clientSecret: '%client_secret%'
+
+    App\Service\ForgotPasswordService:
+        arguments:
+            $frontendUrl: '%frontend_url%'
+
+    App\Service\KeycloakActionTokenValidator:
+        arguments:
+            $publicKeyPath: '%kernel.project_dir%/config/jwt/keycloak-public.pem'
 
     App\Service\KeycloakClaimsReader:
         arguments:
             $clientId: '%client_id%'
-
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
