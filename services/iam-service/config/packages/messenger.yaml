@@ -1,0 +1,15 @@
+framework:
+    messenger:
+        transports:
+            iam_events:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    auto_setup: true
+                    exchange:
+                        name: iam.events
+                        type: direct
+
+        routing:
+            'App\Message\UserRegisteredMessage': iam_events
+            'App\Message\UserVerifiedMessage': iam_events

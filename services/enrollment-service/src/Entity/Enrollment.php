@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Enrollment\Entity;
+namespace App\Entity;
 
-use App\Enrollment\Enum\EnrollmentStatus;
-use App\Enrollment\Repository\EnrollmentRepository;
+use App\Enum\EnrollmentStatus;
+use App\Repository\EnrollmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

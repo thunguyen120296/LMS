@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
-import { loginUser, logoutUser, registerUser } from '../api/auth.api'
+import { forgotPassword, loginUser, logoutUser, registerUser } from '../api/auth.api'
 import { useAuthStore } from '../store/auth.store'
 import type { LoginRequest, RegisterRequest } from '../types/auth.types'
 
@@ -48,8 +48,21 @@ export function useRegister() {
   return useMutation({
     mutationFn: (payload: RegisterRequest) => registerUser(payload),
     onSuccess: (result) => {
-      navigate('/login', {
-        state: { message: `${result.message}. Vui lòng đăng nhập.` },
+      navigate('/check-email', {
+        state: { email: result.email, message: result.message, mode: 'verify' },
+      })
+    },
+  })
+}
+
+export function useForgotPassword() {
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: (email: string) => forgotPassword(email),
+    onSuccess: (result, email) => {
+      navigate('/check-email', {
+        state: { email, message: result.message, mode: 'reset' },
       })
     },
   })

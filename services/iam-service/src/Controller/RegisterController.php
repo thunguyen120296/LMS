@@ -58,7 +58,7 @@ final class RegisterController extends BaseController
                 'userId' => $user->getId(),
                 'email' => $user->getEmail(),
             ],
-            'Đăng ký thành công',
+            'Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.',
             null,
             201,
         );

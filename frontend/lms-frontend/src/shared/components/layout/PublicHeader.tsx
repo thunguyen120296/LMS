@@ -17,6 +17,8 @@ interface PublicHeaderProps {
 
 export default function PublicHeader({ variant = 'public' }: PublicHeaderProps) {
   const user = useAuthStore((state) => state.user)
+  const isInitialized = useAuthStore((state) => state.isInitialized)
+  const isAuthenticated = isInitialized && user !== null
   const logout = useLogout()
 
   return (
@@ -69,7 +71,7 @@ export default function PublicHeader({ variant = 'public' }: PublicHeaderProps) 
             Khóa học
           </Link>
 
-          {user ? (
+          {isAuthenticated ? (
             <>
               <Link
                 to="/dashboard"
@@ -87,7 +89,7 @@ export default function PublicHeader({ variant = 'public' }: PublicHeaderProps) 
                 to="/profile"
                 className="hidden px-3 py-2 text-sm font-medium text-udemy-dark hover:text-udemy-purple lg:block"
               >
-                {user.fullName || user.email}
+                {user!.fullName || user!.email}
               </Link>
               <button
                 type="button"

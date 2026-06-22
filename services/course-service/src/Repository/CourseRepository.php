@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Course\Repository;
+namespace App\Repository;
 
-use App\Course\Entity\Course;
-use App\Course\Enum\CourseLevel;
+use App\Entity\Course;
+use App\Enum\CourseLanguage;
+use App\Enum\CourseLevel;
+use App\Enum\CourseStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -76,7 +78,7 @@ class CourseRepository extends ServiceEntityRepository
         ?string $categoryId = null,
         ?string $search = null,
         ?CourseLevel $level = null,
-        ?string $language = null,
+        ?CourseLanguage $language = null,
         string $orderBy = 'totalStudents',
         string $direction = 'DESC',
     ): array {
@@ -101,7 +103,7 @@ class CourseRepository extends ServiceEntityRepository
 
         if ($language !== null) {
             $qb->andWhere('c.language = :language')
-               ->setParameter('language', $language);
+               ->setParameter('language', $language->value);
         }
 
         $allowedOrder = ['totalStudents', 'avgRating', 'publishedAt', 'price'];
@@ -154,7 +156,8 @@ class CourseRepository extends ServiceEntityRepository
             ->orderBy('c.createdAt', 'DESC');
 
         if (!$includeUnpublished) {
-            $qb->andWhere('c.isPublished = true');
+            $qb->andWhere('c.status = :published')
+               ->setParameter('published', CourseStatus::Published);
         }
 
         return $qb->getQuery()->getResult();
@@ -216,7 +219,7 @@ class CourseRepository extends ServiceEntityRepository
     public function incrementStudentCount(string $courseId): void
     {
         $this->getEntityManager()->createQuery(
-            'UPDATE App\Course\Entity\Course c
+            'UPDATE App\Entity\Course c
              SET c.totalStudents = c.totalStudents + 1, c.updatedAt = :now
              WHERE c.id = :id'
         )
@@ -228,7 +231,7 @@ class CourseRepository extends ServiceEntityRepository
     public function decrementStudentCount(string $courseId): void
     {
         $this->getEntityManager()->createQuery(
-            'UPDATE App\Course\Entity\Course c
+            'UPDATE App\Entity\Course c
              SET c.totalStudents = GREATEST(c.totalStudents - 1, 0), c.updatedAt = :now
              WHERE c.id = :id'
         )
@@ -240,7 +243,7 @@ class CourseRepository extends ServiceEntityRepository
     public function updateRatingStats(string $courseId, float $avgRating, int $totalReviews): void
     {
         $this->getEntityManager()->createQuery(
-            'UPDATE App\Course\Entity\Course c
+            'UPDATE App\Entity\Course c
              SET c.avgRating = :avg, c.totalReviews = :total, c.updatedAt = :now
              WHERE c.id = :id'
         )
@@ -299,6 +302,7 @@ class CourseRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('c')
             ->where('c.deletedAt IS NULL')
-            ->andWhere('c.isPublished = true');
+            ->andWhere('c.status = :published')
+            ->setParameter('published', CourseStatus::Published);
     }
 }

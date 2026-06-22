@@ -20,9 +20,10 @@ class RegisterService
     public function __construct(
         private readonly HttpClientInterface $client,
         private readonly UserRepository $userRepository,
+        private readonly KeycloakAdminService $keycloakAdminService,
+        private readonly IamEventPublisher $eventPublisher,
         private readonly string $keycloakUrl,
-        private readonly string $clientId,
-        private readonly string $clientSecret,
+        private readonly string $frontendUrl,
         BaseLogService $logger,
     ) {
         $this->logger = $logger->for('register');
@@ -52,7 +53,7 @@ class RegisterService
         }
 
         // 1. Giao tiếp với Keycloak để tạo User và gán Role bên SSO
-        $adminToken = $this->getAdminToken();
+        $adminToken = $this->keycloakAdminService->getAdminToken();
         $ssoSubject = $this->createKeycloakUser($adminToken, $payload);
         $this->assignDefaultKeycloakRoles($adminToken, $ssoSubject);
 
@@ -71,6 +72,10 @@ class RegisterService
 
         $this->userRepository->save($user, true);
 
+        $verifyRedirectUri = rtrim($this->frontendUrl, '/') . '/verify-email';
+        $this->keycloakAdminService->sendVerifyEmail($ssoSubject, $verifyRedirectUri);
+        $this->eventPublisher->publishUserRegistered($user);
+
         $this->logger->info('User registered successfully', new LogContext(
             action: 'register.create_user',
             userId: $user->getId(),
@@ -81,45 +86,6 @@ class RegisterService
         ));
 
         return $user;
-    }
-
-    private function getAdminToken(): string
-    {
-        $this->logger->info('Requesting Keycloak admin token', new LogContext(
-            action: 'register.get_admin_token',
-        ));
-
-        try {
-            $response = $this->client->request('POST', $this->keycloakUrl . '/realms/lms/protocol/openid-connect/token', [
-                'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
-                'body' => http_build_query([
-                    'grant_type' => 'client_credentials',
-                    'client_id' => $this->clientId,
-                    'client_secret' => $this->clientSecret,
-                ]),
-            ]);
-
-            if ($response->getStatusCode() !== 200) {
-                $this->logger->error('Failed to obtain Keycloak admin token', null, new LogContext(
-                    action: 'register.get_admin_token',
-                    extra: ['statusCode' => $response->getStatusCode()],
-                ));
-
-                throw new ApiException('Không thể kết nối dịch vụ xác thực', 500);
-            }
-
-            $this->logger->info('Keycloak admin token obtained', new LogContext(
-                action: 'register.get_admin_token',
-            ));
-
-            return $response->toArray()['access_token'];
-        } catch (TransportExceptionInterface $e) {
-            $this->logger->error('Keycloak admin token request failed', $e, new LogContext(
-                action: 'register.get_admin_token',
-            ));
-
-            throw new ApiException('Không thể kết nối dịch vụ xác thực', 500);
-        }
     }
 
     /**
@@ -142,6 +108,7 @@ class RegisterService
                     'email' => trim($payload['email']),
                     'enabled' => true,
                     'emailVerified' => false,
+                    'requiredActions' => [],
                     'firstName' => $this->extractFirstName($payload['fullName'] ?? null),
                     'lastName' => $this->extractLastName($payload['fullName'] ?? null),
                     'credentials' => [

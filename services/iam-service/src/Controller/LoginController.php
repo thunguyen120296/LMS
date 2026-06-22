@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Repository\UserRepository;
 use App\Service\AuthCookieFactory;
 use Lms\Shared\Controller\BaseController;
 use Lms\Shared\Exception\ApiException;
@@ -19,6 +20,7 @@ final class LoginController extends BaseController
         Request $request,
         HttpClientInterface $client,
         AuthCookieFactory $cookieFactory,
+        UserRepository $userRepository,
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
@@ -28,6 +30,13 @@ final class LoginController extends BaseController
 
         if (empty($data['username']) || empty($data['password'])) {
             throw new ApiException('Dữ liệu không hợp lệ', 400);
+        }
+
+        $localUser = $userRepository->findByEmail(trim((string) $data['username']));
+        if ($localUser !== null && !$localUser->isEmailVerified()) {
+            throw new ApiException('Vui lòng xác minh email trước khi đăng nhập. Kiểm tra hộp thư của bạn.', 403, [
+                ['field' => 'email', 'message' => 'Email chưa được xác minh'],
+            ]);
         }
 
         $url = $this->getParameter('keycloak_url') . '/realms/lms/protocol/openid-connect/token';

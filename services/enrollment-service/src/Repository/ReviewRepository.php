@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Enrollment\Repository;
+namespace App\Repository;
 
-use App\Enrollment\Entity\Review;
+use App\Entity\Review;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

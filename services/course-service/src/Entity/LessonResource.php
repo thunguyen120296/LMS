@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Course\Entity;
+namespace App\Entity;
 
-use App\Course\Repository\LessonResourceRepository;
+use App\Repository\LessonResourceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

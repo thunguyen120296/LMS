@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Payment\Entity;
+namespace App\Entity;
 
-use App\Payment\Enum\OrderStatus;
-use App\Payment\Repository\OrderRepository;
+use App\Enum\OrderStatus;
+use App\Repository\OrderRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Payment\Entity;
+namespace App\Entity;
 
-use App\Payment\Enum\DiscountType;
-use App\Payment\Repository\CouponRepository;
+use App\Enum\DiscountType;
+use App\Repository\CouponRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

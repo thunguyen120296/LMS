@@ -1,0 +1,16 @@
+framework:
+    messenger:
+        transports:
+            iam_events:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                serializer: messenger.transport.symfony_serializer
+                options:
+                    auto_setup: true
+                    exchange:
+                        name: iam.events
+                        type: direct
+                    queues:
+                        notification.iam:
+                            binding_keys:
+                                - user.registered
+                                - user.verified

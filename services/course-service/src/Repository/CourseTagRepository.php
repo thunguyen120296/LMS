@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Course\Repository;
+namespace App\Repository;
  
-use App\Course\Entity\CourseTag;
+use App\Entity\CourseTag;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
  
@@ -29,7 +29,7 @@ class CourseTagRepository extends ServiceEntityRepository
  
         // Delete existing
         $em->createQuery(
-            'DELETE FROM App\Course\Entity\CourseTag ct WHERE ct.course = :courseId'
+            'DELETE FROM App\Entity\CourseTag ct WHERE ct.course = :courseId'
         )
         ->setParameter('courseId', $courseId)
         ->execute();

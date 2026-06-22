@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Course\Entity;
+namespace App\Entity;
 
-use App\Course\Enum\LessonType;
-use App\Course\Repository\LessonRepository;
+use App\Enum\LessonType;
+use App\Repository\LessonRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

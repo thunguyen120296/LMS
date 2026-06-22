@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Payment\Entity;
+namespace App\Entity;
 
-use App\Payment\Enum\TransactionStatus;
-use App\Payment\Repository\TransactionRepository;
+use App\Enum\TransactionStatus;
+use App\Repository\TransactionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

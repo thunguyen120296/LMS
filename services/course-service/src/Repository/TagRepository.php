@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
-namespace App\Course\Repository;
+namespace App\Repository;
  
-use App\Course\Entity\Tag;
+use App\Entity\Tag;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
  

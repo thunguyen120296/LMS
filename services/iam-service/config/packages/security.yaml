@@ -16,7 +16,7 @@ security:
 
         # Nginx rewrite /api/iam/* -> /* trước khi vào Symfony
         api_public:
-            pattern: ^/(login|register|refresh/token|logout)$
+            pattern: ^/(login|register|refresh/token|logout|verify-email|forgot-password|reset-password|reset-password/validate|webhooks/keycloak)$
             stateless: true
             security: false
 
@@ -40,6 +40,10 @@ security:
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/refresh/token, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: PUBLIC_ACCESS }
+        - { path: ^/verify-email, roles: PUBLIC_ACCESS }
+        - { path: ^/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/webhooks/keycloak, roles: PUBLIC_ACCESS }
         - { path: ^/me, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/v1, roles: IS_AUTHENTICATED_FULLY }
 
