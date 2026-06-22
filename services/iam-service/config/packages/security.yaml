@@ -45,6 +45,8 @@ security:
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }
         - { path: ^/webhooks/keycloak, roles: PUBLIC_ACCESS }
         - { path: ^/me, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/profile, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/update-profile, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/v1, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

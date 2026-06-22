@@ -13,6 +13,7 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 }
 
 const AUTH_SKIP_PATHS = ['/login', '/register', '/refresh/token', '/logout', '/verify-email']
+const AUTH_ACTION_PATHS = ['/verify-email', '/reset-password']
 
 let refreshPromise: Promise<void> | null = null
 
@@ -21,7 +22,15 @@ function shouldSkipTokenRefresh(url?: string): boolean {
   return AUTH_SKIP_PATHS.some((path) => url.includes(path))
 }
 
+function isAuthActionPage(): boolean {
+  return AUTH_ACTION_PATHS.includes(window.location.pathname)
+}
+
 function redirectToLogin() {
+  if (isAuthActionPage()) {
+    return
+  }
+
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'
   }

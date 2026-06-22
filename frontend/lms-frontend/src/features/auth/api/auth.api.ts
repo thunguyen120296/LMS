@@ -9,6 +9,8 @@ import type {
   RefreshTokenResponse,
   RegisterRequest,
   RegisterResponse,
+  UpdateProfileRequest,
+  UserProfile,
 } from '../types/auth.types'
 import {
   applyMeToStore,
@@ -39,6 +41,26 @@ export async function fetchMe(): Promise<MeResponse> {
     return result
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Không thể lấy thông tin người dùng.'))
+  }
+}
+
+export async function fetchProfile(): Promise<UserProfile> {
+  try {
+    const { data } = await client.get<ApiResponse<UserProfile>>('/profile')
+    return assertSuccess(data, 'Không thể lấy thông tin hồ sơ')
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Không thể lấy thông tin hồ sơ.'))
+  }
+}
+
+export async function updateProfile(payload: UpdateProfileRequest): Promise<UserProfile> {
+  try {
+    const { data } = await client.post<ApiResponse<UserProfile>>('/update-profile', payload)
+    const profile = assertSuccess(data, 'Không thể cập nhật hồ sơ')
+    await fetchMe()
+    return profile
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Không thể cập nhật hồ sơ.'))
   }
 }
 

@@ -22,7 +22,7 @@
 <p>Quản trị viên vừa yêu cầu bạn cập nhật tài khoản ${realmName}.</p>
 <p>${actionDescription}</p>
 <p><a href="${actionUrl}">${actionLabel}</a></p>
-<p>Liên kết này sẽ hết hạn sau ${linkExpiration?datetime?string("dd/MM/yyyy HH:mm")}.</p>
+<p>Liên kết này sẽ hết hạn sau ${linkExpirationFormatter(linkExpiration)}.</p>
 <p>${ignoreMessage}</p>
 </body>
 </html>

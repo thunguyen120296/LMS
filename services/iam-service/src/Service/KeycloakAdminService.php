@@ -54,6 +54,35 @@ class KeycloakAdminService
         }
     }
 
+    public function updateUserProfile(string $ssoSubject, ?string $firstName, ?string $lastName): void
+    {
+        $adminToken = $this->getAdminToken();
+
+        $response = $this->client->request(
+            'PUT',
+            $this->keycloakUrl . '/admin/realms/lms/users/' . $ssoSubject,
+            [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $adminToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'firstName' => $firstName ?? '',
+                    'lastName' => $lastName ?? '',
+                ],
+            ],
+        );
+
+        if ($response->getStatusCode() !== 204) {
+            $this->logger->error('Failed to update Keycloak user profile', null, new LogContext(
+                action: 'keycloak_admin.update_user_profile',
+                extra: ['ssoSubject' => $ssoSubject, 'statusCode' => $response->getStatusCode()],
+            ));
+
+            throw new ApiException('Không thể cập nhật hồ sơ trên hệ thống xác thực', 500);
+        }
+    }
+
     public function markEmailVerified(string $ssoSubject): void
     {
         $adminToken = $this->getAdminToken();
